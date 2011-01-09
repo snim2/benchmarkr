@@ -25,6 +25,7 @@ import math
 import os
 import subprocess
 import sys
+import time
 
 from optparse import OptionParser
 from optparse import OptionGroup
@@ -38,50 +39,50 @@ __credits__ = 'Andy Georges'
 __date__ = 'Jan 2011'
 
 
+if sys.platform == "win32":
+    # On Windows, the best timer is time.clock()
+    default_timer = time.clock
+else:
+    # On most other platforms the best timer is time.time()
+    default_timer = time.time
+
+
 def configurator():
     """Set up command-line parser.
     """
     parser = OptionParser()
 
     parser.add_option('-e', '--command',
-                      dest='cmd', 
-                      action='store',
-                      type='string',
+                      dest='cmd', action='store', type='string',
                       help='command to be benchmarked')
 
-    interpreter = OptionGroup(parser,
-                              'Interpreter options',
+    parser.add_option('-g', '--garbage',
+                      dest='cmd', action='store_false',
+                      help='turn garbage collection OFF during benchmarking')
+    
+    interpreter = OptionGroup(parser, 'Interpreter options',
                               'Configure the Python interpreter')
     interpreter.add_option('-r', '--recursion',
-                           dest='recursionlimit', 
-                           action='store',
+                           dest='recursionlimit', action='store', type='int',
                            default=sys.getrecursionlimit(),
-                           type='int',
                            help='set the recursion limit on the Python interepreter')
     interpreter.add_option('-c', '--checkinterval',
-                           dest='checkinterval', 
-                           action='store',
+                           dest='checkinterval', action='store', type='int',
                            default=sys.getcheckinterval(),
-                           type='int',
                            help='set the check interval on the Python interepreter')
     parser.add_option_group(interpreter)
     
-    repetitions = OptionGroup(parser,
-                              'Repetition options',
+    repetitions = OptionGroup(parser, 'Repetition options',
                               'Control the number of times the benchmark is executed.')
     repetitions.add_option('-i', '--interval',
-                           dest='interval', 
-                           action='store',
+                           dest='interval', action='store', type='float',
                            default=0.95,
-                           type='float',
                            help=('run benchmark until a given confidence interval ' +
                                  'has been obtained (must be between 0.0 and 1.0)'))
     repetitions.add_option('-n', '--num',
-                           dest='num', 
+                           dest='num', action='store', type='int',
                            default=1000000,
-                           action='store',
-                           type='int',
-                           help='exact number of times to run the benchmark')
+                           help='exact number of times to run the benchmark (DEFAULT)')
     parser.add_option_group(repetitions)
     
     return parser
